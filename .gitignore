@@ -22,3 +22,5 @@ uploads/**
 server/uploads/**
 !server/uploads/
 !server/uploads/.gitkeep
+# Local editor files
+# Local tool bundles and dependencies
