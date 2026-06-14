@@ -38,7 +38,7 @@ This README still gives a code-level explanation of the project so readers do no
 
 ## UI Preview
 
-![Uni Sphere Landing Page](./docs/screenshots/landing-page.jpg)
+![Uni Sphere Landing Page](./docs/screenshots/landing-page.png)
 
 The complete UI walkthrough is available in the UI screenshots PDF.
 
@@ -209,7 +209,7 @@ it3030-paf-2026-smart-campus-Group_Project-WE-42/
 |   |-- project-documentation.pdf
 |   |-- ui-screenshots.pdf
 |   `-- screenshots/
-|       `-- landing-page.jpg
+|       `-- landing-page.png
 |
 |-- uploads/
 |-- README.md
@@ -546,7 +546,7 @@ Local URLs:
 
 The README shows only one preview image to keep the front page readable.
 
-![Uni Sphere Landing Page](./docs/screenshots/landing-page.jpg)
+![Uni Sphere Landing Page](./docs/screenshots/landing-page.png)
 
 The complete UI walkthrough is available in the UI screenshots PDF:
 
