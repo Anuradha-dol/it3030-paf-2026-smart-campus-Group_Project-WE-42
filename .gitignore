@@ -32,3 +32,11 @@ server/uploads/**
 **/uploads/**
 !**/uploads/
 !**/uploads/.gitkeep
+# Dependencies and build output
+**/dist/
+build/
+**/build/
+# Local secrets
+.env
+.env.*
+!.env.example
