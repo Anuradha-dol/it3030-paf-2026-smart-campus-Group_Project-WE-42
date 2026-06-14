@@ -6,3 +6,18 @@ run-server.cmd
 server/.ai/
 server/src/main/java/com/smartcampus/dto/ResourceRequestDTO.java
 server/target/
+# Local editor files
+.vscode/
+*.iml
+# Local tool bundles and dependencies
+.tools/
+node_modules/
+client/node_modules/
+client/dist/
+# Runtime uploads
+uploads/**
+!uploads/
+!uploads/.gitkeep
+server/uploads/**
+!server/uploads/
+!server/uploads/.gitkeep
