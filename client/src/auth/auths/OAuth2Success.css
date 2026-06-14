@@ -1,0 +1,355 @@
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Sora:wght@600;700;800&display=swap");
+@import "../authTheme.css";
+
+.oauth2-flow {
+  --o2-bg-0: #fffdf9;
+  --o2-bg-1: #fff4e8;
+  --o2-bg-2: #fffaf1;
+  --o2-ink-900: #231a2e;
+  --o2-ink-700: #665c75;
+  --o2-ink-500: #8f849f;
+  --o2-line: #f2ddcc;
+  --o2-brand: #ff8b52;
+  --o2-brand-deep: #ea6f35;
+  --o2-success: #2aa67c;
+  --o2-error: #d2514a;
+
+  position: fixed;
+  inset: 0;
+  overflow: auto;
+  padding: clamp(14px, 2.2vw, 26px);
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 10% 8%, #ffefdf 0, transparent 42%),
+    radial-gradient(circle at 88% 14%, #fff4e5 0, transparent 38%),
+    linear-gradient(155deg, var(--o2-bg-0), var(--o2-bg-2));
+  font-family: "Manrope", "Inter", sans-serif;
+}
+
+.oauth2-flow__bg {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 22% 72%, rgba(255, 166, 110, 0.2), transparent 34%),
+    radial-gradient(circle at 82% 78%, rgba(255, 213, 177, 0.24), transparent 36%),
+    conic-gradient(
+      from 185deg at 74% 22%,
+      rgba(255, 153, 95, 0) 0deg,
+      rgba(255, 153, 95, 0.12) 95deg,
+      rgba(255, 209, 168, 0.15) 210deg,
+      rgba(255, 153, 95, 0) 360deg
+    );
+  animation: oauth2Aura 10s ease-in-out infinite alternate;
+}
+
+.oauth2-shell {
+  position: relative;
+  z-index: 1;
+  width: min(650px, 100%);
+  border-radius: 26px;
+  border: 1px solid var(--o2-line);
+  background: linear-gradient(165deg, #fff, #fff8f1 62%, #fff3e8);
+  box-shadow:
+    0 24px 55px rgba(166, 95, 47, 0.16),
+    0 8px 20px rgba(166, 95, 47, 0.1);
+  padding: clamp(20px, 2.6vw, 32px);
+  animation: oauth2Lift 520ms ease-out both;
+}
+
+.oauth2-shell::before {
+  content: "";
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: 0;
+  height: 5px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #ff9d69, #ff7d45, #ffad7f);
+}
+
+.oauth2-shell.is-success::before {
+  background: linear-gradient(90deg, #ffad7f, #ff874d, #ffc49f);
+}
+
+.oauth2-shell.is-error::before {
+  background: linear-gradient(90deg, #f0877f, #d2514a, #f3a5a0);
+}
+
+.oauth2-shell__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.brand-lockup {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brand-badge {
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-family: "Sora", sans-serif;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: #fff;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  background: linear-gradient(135deg, var(--o2-brand-deep), #ffaf7d);
+  box-shadow: 0 10px 18px rgba(201, 108, 55, 0.26);
+}
+
+.brand-lockup strong {
+  display: block;
+  color: var(--o2-ink-900);
+  font-family: "Sora", sans-serif;
+  font-size: 1.14rem;
+  letter-spacing: 0.01em;
+}
+
+.brand-lockup p {
+  margin: 2px 0 0;
+  color: var(--o2-ink-500);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.oauth2-chip {
+  border-radius: 999px;
+  border: 1px solid #f0d2bd;
+  background: #fff;
+  color: #9b653f;
+  padding: 8px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.oauth2-hero {
+  border-radius: 18px;
+  border: 1px solid #f1dece;
+  background: linear-gradient(160deg, #fff, #fffaf4);
+  padding: 16px;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 14px;
+  align-items: center;
+}
+
+.status-emblem {
+  width: 58px;
+  height: 58px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  font-family: "Sora", sans-serif;
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #fff;
+  position: relative;
+  background: linear-gradient(135deg, #ff8c54, #ffb183);
+  box-shadow: 0 12px 22px rgba(213, 117, 63, 0.27);
+}
+
+.status-emblem.is-loading {
+  color: transparent;
+}
+
+.status-emblem.is-loading::after {
+  content: "";
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: 3px solid rgba(255, 255, 255, 0.45);
+  border-top-color: #fff;
+  animation: oauth2Spin 0.8s linear infinite;
+}
+
+.status-emblem.is-success {
+  background: linear-gradient(135deg, #ff8b52, #ffb487);
+  box-shadow: 0 12px 22px rgba(219, 126, 73, 0.26);
+}
+
+.status-emblem.is-error {
+  background: linear-gradient(135deg, #d95f59, #ef8882);
+  box-shadow: 0 12px 22px rgba(205, 91, 85, 0.25);
+}
+
+.oauth2-copy h1 {
+  margin: 0;
+  color: var(--o2-ink-900);
+  font-family: "Sora", sans-serif;
+  font-size: clamp(1.48rem, 2.9vw, 2.08rem);
+  line-height: 1.04;
+  letter-spacing: -0.015em;
+}
+
+.oauth2-copy__message {
+  margin: 7px 0 0;
+  color: var(--o2-ink-700);
+  font-size: 0.98rem;
+  font-weight: 700;
+}
+
+.oauth2-copy__sub {
+  margin: 4px 0 0;
+  color: #8e7d6f;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.oauth2-progress {
+  margin-top: 14px;
+}
+
+.progress-track {
+  height: 9px;
+  border-radius: 999px;
+  background: #f4e4d6;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  width: 66%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #ff9965, #ff7f45);
+  transition: width 220ms ease;
+}
+
+.progress-fill.step-1 {
+  width: 33%;
+}
+
+.progress-fill.step-2 {
+  width: 66%;
+}
+
+.progress-fill.step-3 {
+  width: 100%;
+}
+
+.oauth2-shell.is-success .progress-fill {
+  background: linear-gradient(90deg, #ffa36f, #ff8148);
+}
+
+.oauth2-shell.is-error .progress-fill {
+  background: linear-gradient(90deg, #ed7f77, #d2544d);
+}
+
+.progress-steps {
+  margin-top: 9px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.progress-steps span {
+  border-radius: 999px;
+  border: 1px solid #f0ddd0;
+  background: #fff;
+  padding: 7px 8px;
+  text-align: center;
+  font-size: 0.73rem;
+  font-weight: 700;
+  color: #9f8e81;
+  white-space: nowrap;
+}
+
+.progress-steps span.active {
+  color: #8b4e2d;
+  border-color: #f2be9d;
+  background: linear-gradient(135deg, #fff1e4, #ffe7d2);
+}
+
+.oauth2-shell.is-success .progress-steps span.active {
+  color: #8b4e2d;
+  border-color: #f2be9d;
+  background: linear-gradient(135deg, #fff1e4, #ffe7d2);
+}
+
+.oauth2-shell.is-error .progress-steps span.active {
+  color: #8e3b36;
+  border-color: #efb3af;
+  background: linear-gradient(135deg, #fff1f0, #ffe3e1);
+}
+
+.oauth2-flow__footer {
+  margin-top: 10px;
+  color: #977b66;
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+@keyframes oauth2Lift {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes oauth2Aura {
+  from {
+    filter: saturate(0.95);
+    transform: scale(1);
+  }
+
+  to {
+    filter: saturate(1.08);
+    transform: scale(1.01);
+  }
+}
+
+@keyframes oauth2Spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 640px) {
+  .oauth2-flow {
+    padding: 10px;
+  }
+
+  .oauth2-shell {
+    border-radius: 20px;
+    padding: 16px;
+  }
+
+  .oauth2-shell__head {
+    margin-bottom: 14px;
+  }
+
+  .oauth2-hero {
+    grid-template-columns: 1fr;
+    text-align: center;
+    gap: 10px;
+    padding: 14px;
+  }
+
+  .status-emblem {
+    margin: 0 auto;
+  }
+
+  .progress-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .progress-steps span {
+    white-space: normal;
+  }
+}

@@ -1,0 +1,16 @@
+# Maven / build output
+target/
+*.jar
+*.class
+
+# Runtime uploads generated locally
+uploads/
+
+# Logs
+*.log
+
+# Local tooling and IDE files
+node_modules/
+.idea/
+*.iml
+.tools/

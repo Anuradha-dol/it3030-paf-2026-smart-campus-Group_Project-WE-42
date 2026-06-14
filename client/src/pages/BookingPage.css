@@ -1,0 +1,211 @@
+.md-booking-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.md-alert.success {
+  background-color: #e8f7ee;
+  color: #1f7a45;
+  border: 1px solid #b9e6c9;
+}
+
+.md-booking-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.9fr) minmax(0, 1.4fr);
+  gap: 24px;
+  align-items: start;
+}
+
+.md-booking-info-panel,
+.md-booking-form-panel {
+  min-height: 100%;
+}
+
+.md-booking-resource-card {
+  border: 1px solid #ecd8c8;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #fffefb, #fff7ef);
+  padding: 18px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.md-booking-resource-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.md-booking-resource-top h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.3rem;
+  color: #2b1f16;
+}
+
+.md-booking-badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #8f4624;
+  background: #fff0e3;
+  border: 1px solid #f1c9a9;
+}
+
+.md-booking-resource-meta {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.md-booking-meta-box {
+  border-radius: 14px;
+  padding: 14px;
+  background: #fff;
+  border: 1px solid #f1dccd;
+  box-shadow: 0 4px 10px rgba(217, 106, 50, 0.05);
+}
+
+.md-booking-meta-box span {
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #9a7a63;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 6px;
+}
+
+.md-booking-meta-box strong {
+  font-size: 1rem;
+  color: #3b2c21;
+}
+
+.md-booking-form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.md-booking-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.md-booking-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.md-booking-field-full {
+  grid-column: 1 / -1;
+}
+
+.md-booking-field label {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: #5f4839;
+}
+
+.md-booking-field input,
+.md-booking-field textarea {
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 12px;
+  border: 1px solid #ecd0bb;
+  background: #fffdf9;
+  color: #3b2c21;
+  padding: 12px 14px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.md-booking-field input:focus,
+.md-booking-field textarea:focus {
+  outline: none;
+  border-color: #ff9a68;
+  box-shadow: 0 0 0 4px rgba(255, 151, 99, 0.16);
+}
+
+.md-booking-field textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.md-field-error {
+  margin: 0;
+  color: #c43d33;
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.md-booking-inline-error {
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: #fae8e8;
+  border: 1px solid #f2c7c7;
+  color: #bd3124;
+  font-weight: 600;
+}
+
+.md-booking-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.md-booking-submit {
+  border: 1px solid #ff8352;
+  border-radius: 12px;
+  padding: 12px 22px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #fff;
+  background: linear-gradient(95deg, #ff6a3d, #ff8352 58%, #ff9763);
+  box-shadow:
+    0 10px 15px rgba(244, 123, 74, 0.24),
+    inset 0 -2px 0 rgba(171, 83, 43, 0.2);
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+}
+
+.md-booking-submit:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.01);
+  box-shadow:
+    0 12px 18px rgba(244, 123, 74, 0.28),
+    inset 0 -2px 0 rgba(171, 83, 43, 0.22);
+}
+
+.md-booking-submit:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 1100px) {
+  .md-booking-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .md-booking-resource-meta,
+  .md-booking-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .md-booking-actions {
+    justify-content: stretch;
+  }
+
+  .md-booking-submit {
+    width: 100%;
+  }
+}
