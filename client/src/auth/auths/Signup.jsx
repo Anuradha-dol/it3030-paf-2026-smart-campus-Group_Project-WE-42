@@ -123,13 +123,6 @@ export default function Signup() {
         loadFaceModels().catch(() => {
             // Ignore preload failures; capture flow reports concrete errors.
         });
-
-        return () => {
-            if (faceVideoRef.current) {
-                stopFaceCamera(faceVideoRef.current, faceStreamRef.current);
-            }
-            faceStreamRef.current = null;
-        };
     }, []);
 
     useEffect(() => {
@@ -138,13 +131,14 @@ export default function Signup() {
         }
 
         let cancelled = false;
+        const videoElement = faceVideoRef.current;
 
         const connectCamera = async () => {
             setFaceLoading(true);
             try {
-                const stream = await startFaceCamera(faceVideoRef.current);
+                const stream = await startFaceCamera(videoElement);
                 if (cancelled) {
-                    stopFaceCamera(faceVideoRef.current, stream);
+                    stopFaceCamera(videoElement, stream);
                     return;
                 }
                 faceStreamRef.current = stream;
@@ -165,6 +159,10 @@ export default function Signup() {
 
         return () => {
             cancelled = true;
+            if (faceStreamRef.current) {
+                stopFaceCamera(videoElement, faceStreamRef.current);
+                faceStreamRef.current = null;
+            }
         };
     }, [faceCameraOpen]);
 

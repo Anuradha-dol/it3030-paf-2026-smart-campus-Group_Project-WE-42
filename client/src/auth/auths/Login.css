@@ -611,6 +611,7 @@
 }
 
 .face-video-wrap {
+  position: relative;
   border-radius: 10px;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.08);
@@ -623,6 +624,21 @@
   height: 142px;
   object-fit: cover;
   display: block;
+  background: #1f2744;
+  transform: scaleX(-1);
+}
+
+.face-video-status {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 12px;
+  text-align: center;
+  color: #fff8f1;
+  background: rgba(35, 26, 46, 0.62);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .face-login-actions {
@@ -672,10 +688,21 @@
 
 .face-message {
   margin: 0.5rem 0 0;
-  color: #1e7a4d;
   font-size: 0.84rem;
   font-weight: 600;
   text-align: center;
+}
+
+.face-message--info {
+  color: #8f5e42;
+}
+
+.face-message--success {
+  color: #1e7a4d;
+}
+
+.face-message--error {
+  color: #c45b31;
 }
 
 .login-card__footer {
