@@ -24,3 +24,11 @@ server/uploads/**
 !server/uploads/.gitkeep
 # Local editor files
 # Local tool bundles and dependencies
+# Broad local/generated files
+**/.idea/
+**/.vscode/
+**/.tools/
+**/node_modules/
+**/uploads/**
+!**/uploads/
+!**/uploads/.gitkeep
