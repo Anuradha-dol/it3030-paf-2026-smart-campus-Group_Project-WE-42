@@ -13,6 +13,7 @@ import './Login.css';
 export default function Login() {
     const navigate = useNavigate();
     const location = useLocation();
+    const emailInputRef = useRef(null);
     const faceVideoRef = useRef(null);
     const faceStreamRef = useRef(null);
     const [form, setForm] = useState({ email: '', password: '' });
@@ -22,7 +23,9 @@ export default function Login() {
     const [loading, setLoading] = useState(false);
     const [faceLoading, setFaceLoading] = useState(false);
     const [faceCameraOpen, setFaceCameraOpen] = useState(false);
+    const [faceCameraReady, setFaceCameraReady] = useState(false);
     const [faceMessage, setFaceMessage] = useState('');
+    const [faceMessageType, setFaceMessageType] = useState('info');
     const [loginMode, setLoginMode] = useState('normal');
 
     useEffect(() => {
@@ -41,13 +44,6 @@ export default function Login() {
         loadFaceModels().catch(() => {
             // Capture flow reports concrete errors.
         });
-
-        return () => {
-            if (faceVideoRef.current) {
-                stopFaceCamera(faceVideoRef.current, faceStreamRef.current);
-            }
-            faceStreamRef.current = null;
-        };
     }, []);
 
     useEffect(() => {
@@ -56,21 +52,30 @@ export default function Login() {
         }
 
         let cancelled = false;
+        const videoElement = faceVideoRef.current;
 
         const connectCamera = async () => {
             setFaceLoading(true);
+            setFaceCameraReady(false);
+            setFaceMessage('Opening camera...');
+            setFaceMessageType('info');
             try {
-                const stream = await startFaceCamera(faceVideoRef.current);
+                const stream = await startFaceCamera(videoElement);
                 if (cancelled) {
-                    stopFaceCamera(faceVideoRef.current, stream);
+                    stopFaceCamera(videoElement, stream);
                     return;
                 }
                 faceStreamRef.current = stream;
+                setFaceCameraReady(true);
+                setFaceMessage('Camera ready. Center your face and scan.');
+                setFaceMessageType('info');
             } catch (cameraError) {
                 if (cancelled) {
                     return;
                 }
                 setFaceCameraOpen(false);
+                setFaceCameraReady(false);
+                setFaceMessage('');
                 setMessage(getFaceCameraErrorMessage(cameraError));
             } finally {
                 if (!cancelled) {
@@ -83,6 +88,10 @@ export default function Login() {
 
         return () => {
             cancelled = true;
+            if (faceStreamRef.current) {
+                stopFaceCamera(videoElement, faceStreamRef.current);
+                faceStreamRef.current = null;
+            }
         };
     }, [faceCameraOpen]);
 
@@ -99,6 +108,10 @@ export default function Login() {
         const { name, value } = e.target;
         setForm((prev) => ({ ...prev, [name]: value }));
         if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+        if (name === 'email' && faceMessageType === 'error') {
+            setFaceMessage('');
+            setFaceMessageType('info');
+        }
     };
 
     const validate = () => {
@@ -166,6 +179,7 @@ export default function Login() {
         }
 
         setFaceMessage('');
+        setFaceMessageType('info');
         setMessage('');
         setFaceCameraOpen(true);
     };
@@ -173,12 +187,21 @@ export default function Login() {
     const closeFaceCamera = () => {
         stopFaceCamera(faceVideoRef.current, faceStreamRef.current);
         faceStreamRef.current = null;
+        setFaceCameraReady(false);
         setFaceCameraOpen(false);
     };
 
     const handleFaceLogin = async () => {
         if (!form.email.trim()) {
             setErrors((prev) => ({ ...prev, email: 'Email is required for face login' }));
+            setFaceMessage('Enter your university email before scanning.');
+            setFaceMessageType('error');
+            emailInputRef.current?.focus();
+            return;
+        }
+        if (faceCameraOpen && !faceCameraReady) {
+            setFaceMessage('Camera is still opening. Please wait a moment.');
+            setFaceMessageType('info');
             return;
         }
         if (!faceCameraOpen || faceLoading) {
@@ -187,7 +210,8 @@ export default function Login() {
 
         setFaceLoading(true);
         setMessage('');
-        setFaceMessage('');
+        setFaceMessage('Scanning face...');
+        setFaceMessageType('info');
 
         try {
             const descriptor = await extractFaceDescriptor(faceVideoRef.current);
@@ -213,16 +237,19 @@ export default function Login() {
 
             if (res.data?.success) {
                 setFaceMessage('Face recognized. Redirecting...');
+                setFaceMessageType('success');
                 closeFaceCamera();
                 routeByRole(res.data.role);
                 return;
             }
 
-            setMessage(res.data?.message || 'Face login failed.');
+            setFaceMessage(res.data?.message || 'Face login failed.');
+            setFaceMessageType('error');
         } catch (err) {
             const apiMessage = err.response?.data?.message;
             const localMessage = err?.message;
-            setMessage(apiMessage || localMessage || 'Face login failed.');
+            setFaceMessage(apiMessage || localMessage || 'Face login failed.');
+            setFaceMessageType('error');
         } finally {
             setFaceLoading(false);
         }
@@ -290,6 +317,7 @@ export default function Login() {
                             <div className='form-group'>
                                 <label>University Email</label>
                                 <input
+                                    ref={emailInputRef}
                                     type='email'
                                     name='email'
                                     value={form.email}
@@ -412,15 +440,22 @@ export default function Login() {
                                                         playsInline
                                                         className='face-video'
                                                     />
+                                                    {!faceCameraReady && (
+                                                        <span className='face-video-status'>
+                                                            {faceLoading ? 'Opening camera...' : 'Waiting for camera...'}
+                                                        </span>
+                                                    )}
                                                 </div>
                                                 <div className='face-login-actions'>
                                                     <button
                                                         type='button'
                                                         onClick={handleFaceLogin}
                                                         className='login-btn'
-                                                        disabled={loading || faceLoading}
+                                                        disabled={loading || faceLoading || !faceCameraReady}
                                                     >
-                                                        {faceLoading ? 'Scanning...' : 'Scan & Login'}
+                                                        {faceLoading
+                                                            ? (faceCameraReady ? 'Scanning...' : 'Opening...')
+                                                            : 'Scan & Login'}
                                                     </button>
                                                     <button
                                                         type='button'
@@ -432,7 +467,7 @@ export default function Login() {
                                                     </button>
                                                 </div>
                                                 {faceMessage && (
-                                                    <p className='face-message'>
+                                                    <p className={`face-message face-message--${faceMessageType}`}>
                                                         {faceMessage}
                                                     </p>
                                                 )}

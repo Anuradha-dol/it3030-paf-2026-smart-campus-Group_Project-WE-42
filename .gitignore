@@ -1,40 +1,54 @@
-.idea/misc.xml
-client/src/components/Navbar.jsx
-.idea/compiler.xml
-.idea/workspace.xml
-.idea/
+# IntelliJ IDEA shared project files
+.idea/*
+!.idea/
+!.idea/.gitignore
+!.idea/compiler.xml
+!.idea/encodings.xml
+!.idea/jarRepositories.xml
+!.idea/misc.xml
+!.idea/vcs.xml
 *.iml
-run-server.cmd
-server/.ai/
-server/src/main/java/com/smartcampus/dto/ResourceRequestDTO.java
-server/target/
+
 # Local editor files
 .vscode/
-# Local tool bundles and dependencies
+**/.vscode/
+
+# Local tool bundles and generated dependencies
 .tools/
-node_modules/
+**/.tools/
+server/.ai/
 client/node_modules/
+**/node_modules/
+
+# Build output
 client/dist/
-# Runtime uploads
+**/dist/
+build/
+**/build/
+server/target/
+target/
+
+# Runtime uploads should stay local
 uploads/**
 !uploads/
 !uploads/.gitkeep
 server/uploads/**
 !server/uploads/
 !server/uploads/.gitkeep
-# Broad local/generated files
-**/.idea/
-**/.vscode/
-**/.tools/
-**/node_modules/
 **/uploads/**
 !**/uploads/
 !**/uploads/.gitkeep
-# Dependencies and build output
-**/dist/
-build/
-**/build/
+
 # Local secrets
 .env
 .env.*
 !.env.example
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*

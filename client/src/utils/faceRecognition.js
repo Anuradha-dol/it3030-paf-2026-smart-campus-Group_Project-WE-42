@@ -2,6 +2,9 @@ import * as faceapi from 'face-api.js';
 
 const MODEL_URL = '/models';
 let modelsLoadedPromise = null;
+const VIDEO_READY_TIMEOUT_MS = 5000;
+const FACE_DETECTION_ATTEMPTS = 8;
+const FACE_DETECTION_RETRY_DELAY_MS = 250;
 const REQUIRED_MODEL_MANIFESTS = [
     'tiny_face_detector_model-weights_manifest.json',
     'face_landmark_68_model-weights_manifest.json',
@@ -16,7 +19,74 @@ function getModelSetupErrorMessage(details = '') {
 function getDetectorOptions() {
     return new faceapi.TinyFaceDetectorOptions({
         inputSize: 320,
-        scoreThreshold: 0.5,
+        scoreThreshold: 0.45,
+    });
+}
+
+function delay(ms) {
+    return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+function createNamedError(name, message) {
+    const error = new Error(message);
+    error.name = name;
+    return error;
+}
+
+function hasUsableVideoFrame(videoElement) {
+    return (
+        videoElement &&
+        videoElement.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA &&
+        videoElement.videoWidth > 0 &&
+        videoElement.videoHeight > 0
+    );
+}
+
+async function waitForVideoFrame(videoElement, timeoutMs = VIDEO_READY_TIMEOUT_MS) {
+    if (hasUsableVideoFrame(videoElement)) {
+        return;
+    }
+
+    await new Promise((resolve, reject) => {
+        let frameCallbackId = null;
+
+        const timeoutId = window.setTimeout(() => {
+            cleanup();
+            reject(createNamedError('VideoFrameTimeoutError', 'Camera opened, but no video frame was received.'));
+        }, timeoutMs);
+
+        const cleanup = () => {
+            window.clearTimeout(timeoutId);
+            videoElement.removeEventListener('loadedmetadata', checkReady);
+            videoElement.removeEventListener('loadeddata', checkReady);
+            videoElement.removeEventListener('canplay', checkReady);
+            videoElement.removeEventListener('playing', checkReady);
+            if (frameCallbackId !== null && typeof videoElement.cancelVideoFrameCallback === 'function') {
+                videoElement.cancelVideoFrameCallback(frameCallbackId);
+            }
+        };
+
+        const finish = () => {
+            cleanup();
+            resolve();
+        };
+
+        function checkReady() {
+            if (hasUsableVideoFrame(videoElement)) {
+                finish();
+            }
+        }
+
+        videoElement.addEventListener('loadedmetadata', checkReady);
+        videoElement.addEventListener('loadeddata', checkReady);
+        videoElement.addEventListener('canplay', checkReady);
+        videoElement.addEventListener('playing', checkReady);
+
+        if (typeof videoElement.requestVideoFrameCallback === 'function') {
+            frameCallbackId = videoElement.requestVideoFrameCallback(checkReady);
+        }
+
+        checkReady();
     });
 }
 
@@ -77,6 +147,13 @@ export async function startFaceCamera(videoElement) {
         throw new Error('Video element is required');
     }
 
+    if (!navigator.mediaDevices?.getUserMedia) {
+        throw createNamedError(
+            'NotSupportedError',
+            'Camera API is not available in this browser context.'
+        );
+    }
+
     const stream = await navigator.mediaDevices.getUserMedia({
         video: {
             width: { ideal: 640 },
@@ -86,14 +163,26 @@ export async function startFaceCamera(videoElement) {
         audio: false,
     });
 
-    videoElement.srcObject = stream;
-    await videoElement.play();
-    return stream;
+    try {
+        videoElement.srcObject = stream;
+        await videoElement.play();
+        await waitForVideoFrame(videoElement);
+        return stream;
+    } catch (error) {
+        stopFaceCamera(videoElement, stream);
+        throw error;
+    }
 }
 
 export function getFaceCameraErrorMessage(error) {
     const errorName = error?.name || '';
 
+    if (errorName === 'NotSupportedError') {
+        if (window.isSecureContext === false) {
+            return 'Camera access needs HTTPS or localhost. Open the app with http://localhost:5173 and try again.';
+        }
+        return 'Camera access is not supported in this browser.';
+    }
     if (errorName === 'NotAllowedError') {
         return 'Camera permission denied. Please allow camera access in your browser settings.';
     }
@@ -108,6 +197,9 @@ export function getFaceCameraErrorMessage(error) {
     }
     if (errorName === 'OverconstrainedError') {
         return 'Requested camera constraints are not supported on this device.';
+    }
+    if (errorName === 'VideoFrameTimeoutError') {
+        return 'Camera opened but did not send video. Close other camera apps and try again.';
     }
 
     return 'Unable to access camera. Please allow camera permission and try again.';
@@ -129,19 +221,34 @@ export async function extractFaceDescriptor(videoElement) {
     }
 
     await loadFaceModels();
+    await waitForVideoFrame(videoElement);
 
-    const detections = await faceapi
-        .detectAllFaces(videoElement, getDetectorOptions())
-        .withFaceLandmarks()
-        .withFaceDescriptors();
+    let lastDetectionCount = 0;
 
-    if (!detections || detections.length === 0) {
-        throw new Error('No face detected. Please center your face and try again.');
+    for (let attempt = 0; attempt < FACE_DETECTION_ATTEMPTS; attempt += 1) {
+        const detections = await faceapi
+            .detectAllFaces(videoElement, getDetectorOptions())
+            .withFaceLandmarks()
+            .withFaceDescriptors();
+
+        lastDetectionCount = detections?.length || 0;
+
+        if (lastDetectionCount === 1) {
+            return descriptorToArray(detections[0].descriptor);
+        }
+
+        if (lastDetectionCount > 1) {
+            throw new Error('Multiple faces detected. Please keep only one face in frame.');
+        }
+
+        if (attempt < FACE_DETECTION_ATTEMPTS - 1) {
+            await delay(FACE_DETECTION_RETRY_DELAY_MS);
+        }
     }
 
-    if (detections.length > 1) {
-        throw new Error('Multiple faces detected. Please keep only one face in frame.');
+    if (lastDetectionCount === 0) {
+        throw new Error('No face detected. Keep your face centered, improve lighting, and try again.');
     }
 
-    return descriptorToArray(detections[0].descriptor);
+    throw new Error('Face scan failed. Please try again.');
 }
