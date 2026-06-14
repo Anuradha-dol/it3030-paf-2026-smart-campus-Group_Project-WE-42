@@ -1,14 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import api from '../../api';
+import {
+    extractFaceDescriptor,
+    getFaceCameraErrorMessage,
+    loadFaceModels,
+    startFaceCamera,
+    stopFaceCamera,
+} from '../../utils/faceRecognition';
 import './Signup.css';
 
-const roleOptions = ['USER', 'ADMIN', 'TECHNICIAN'];
 const yearOptions = ['FIRST', 'SECOND', 'THIRD', 'FOURTH'];
 const semesterOptions = ['SEM1', 'SEM2'];
 
 export default function Signup() {
     const navigate = useNavigate();
+    const faceVideoRef = useRef(null);
+    const faceStreamRef = useRef(null);
     const totalSteps = 3;
 
     const [form, setForm] = useState({
@@ -17,7 +25,6 @@ export default function Signup() {
         email: '',
         tempEmail: '',
         phoneNumber: '',
-        role: 'USER',
         year: '',
         semester: '',
         password: '',
@@ -25,6 +32,10 @@ export default function Signup() {
     });
     const [currentStep, setCurrentStep] = useState(1);
     const [loading, setLoading] = useState(false);
+    const [faceLoading, setFaceLoading] = useState(false);
+    const [faceDescriptor, setFaceDescriptor] = useState(null);
+    const [faceMessage, setFaceMessage] = useState('');
+    const [faceCameraOpen, setFaceCameraOpen] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
 
@@ -51,11 +62,6 @@ export default function Signup() {
 
         if (!form.tempEmail.trim()) {
             setError('Recovery email is required.');
-            return false;
-        }
-
-        if (!form.role) {
-            setError('Role is required.');
             return false;
         }
 
@@ -87,6 +93,7 @@ export default function Signup() {
     };
 
     const goToNextStep = () => {
+        // Validate current step before moving forward.
         setError('');
         setSuccess('');
 
@@ -109,6 +116,91 @@ export default function Signup() {
         setError('');
         setSuccess('');
         setCurrentStep((prev) => Math.max(1, prev - 1));
+    };
+
+    useEffect(() => {
+        // Preload models once to reduce first capture delay.
+        loadFaceModels().catch(() => {
+            // Ignore preload failures; capture flow reports concrete errors.
+        });
+    }, []);
+
+    useEffect(() => {
+        if (!faceCameraOpen) {
+            return;
+        }
+
+        let cancelled = false;
+        const videoElement = faceVideoRef.current;
+
+        const connectCamera = async () => {
+            setFaceLoading(true);
+            try {
+                const stream = await startFaceCamera(videoElement);
+                if (cancelled) {
+                    stopFaceCamera(videoElement, stream);
+                    return;
+                }
+                faceStreamRef.current = stream;
+            } catch (cameraError) {
+                if (cancelled) {
+                    return;
+                }
+                setFaceCameraOpen(false);
+                setError(getFaceCameraErrorMessage(cameraError));
+            } finally {
+                if (!cancelled) {
+                    setFaceLoading(false);
+                }
+            }
+        };
+
+        connectCamera();
+
+        return () => {
+            cancelled = true;
+            if (faceStreamRef.current) {
+                stopFaceCamera(videoElement, faceStreamRef.current);
+                faceStreamRef.current = null;
+            }
+        };
+    }, [faceCameraOpen]);
+
+    const openFaceCamera = () => {
+        if (faceLoading) {
+            return;
+        }
+
+        setError('');
+        setFaceMessage('');
+        setFaceCameraOpen(true);
+    };
+
+    const closeFaceCamera = () => {
+        stopFaceCamera(faceVideoRef.current, faceStreamRef.current);
+        faceStreamRef.current = null;
+        setFaceCameraOpen(false);
+    };
+
+    const handleCaptureFace = async () => {
+        if (!faceCameraOpen || faceLoading) {
+            return;
+        }
+
+        setError('');
+        setFaceMessage('');
+        setFaceLoading(true);
+
+        try {
+            const descriptor = await extractFaceDescriptor(faceVideoRef.current);
+            setFaceDescriptor(descriptor);
+            setFaceMessage('Face captured successfully.');
+            closeFaceCamera();
+        } catch (captureError) {
+            setError(captureError?.message || 'Face capture failed. Please try again.');
+        } finally {
+            setFaceLoading(false);
+        }
     };
 
     const handleFormKeyDown = (event) => {
@@ -150,14 +242,22 @@ export default function Signup() {
             return;
         }
 
+        if (!faceDescriptor) {
+            setCurrentStep(3);
+            setError('Please capture your face to enable face login.');
+            return;
+        }
+
         setLoading(true);
 
         try {
+            // Normalize optional fields before API call.
             const trimmedPhone = form.phoneNumber.trim();
             const trimmedYear = form.year.trim();
             const trimmedSemester = form.semester.trim();
 
             if (trimmedPhone) {
+                // Block duplicate phone numbers early.
                 const phoneCheck = await api.post('/auth/check-phone', {
                     phoneNumber: trimmedPhone,
                 });
@@ -174,9 +274,10 @@ export default function Signup() {
                 email: form.email.trim(),
                 tempEmail: form.tempEmail.trim(),
                 phoneNumber: trimmedPhone || null,
-                role: form.role,
+                role: 'USER',
                 year: trimmedYear || null,
                 semester: trimmedSemester || null,
+                faceDescriptor,
                 password: form.password,
             });
 
@@ -185,11 +286,13 @@ export default function Signup() {
                 return;
             }
 
-            // Email stored in backend cookie, no need for localStorage
+            // Backend stores email in cookie for OTP verification.
             setSuccess('Registration successful. Enter OTP to verify your account.');
             navigate('/verify', { state: { email: form.email.trim() } });
         } catch (err) {
-            setError(err.response?.data?.message || 'Signup failed.');
+            const apiMessage = err.response?.data?.message;
+            const apiDetail = err.response?.data?.detail;
+            setError(apiMessage || apiDetail || 'Signup failed.');
         } finally {
             setLoading(false);
         }
@@ -315,16 +418,6 @@ export default function Signup() {
                                             />
                                         </label>
 
-                                        <label className='form-group'>
-                                            <span>Role (Required)</span>
-                                            <select name='role' value={form.role} onChange={handleChange}>
-                                                {roleOptions.map((role) => (
-                                                    <option key={role} value={role}>
-                                                        {role}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </label>
                                     </div>
                                 </div>
                             )}
@@ -363,7 +456,7 @@ export default function Signup() {
                             {currentStep === 3 && (
                                 <div className='step-panel'>
                                     <p className='step-panel__hint'>
-                                        Step 3 of 3: Add optional details now or later.
+                                        Step 3 of 3: Add optional details and capture your face.
                                     </p>
                                     <div className='signup-grid'>
                                         <label className='form-group'>
@@ -399,6 +492,62 @@ export default function Signup() {
                                                 ))}
                                             </select>
                                         </label>
+                                    </div>
+
+                                    <div className='form-group' style={{ marginTop: '1rem' }}>
+                                        <span>Face Capture (Required for face login)</span>
+                                        {!faceCameraOpen && (
+                                            <button
+                                                className='signup-btn signup-btn-secondary'
+                                                type='button'
+                                                onClick={openFaceCamera}
+                                                disabled={faceLoading}
+                                                style={{ marginTop: '.5rem' }}
+                                            >
+                                                {faceDescriptor ? 'Retake Face' : 'Open Camera'}
+                                            </button>
+                                        )}
+
+                                        {faceCameraOpen && (
+                                            <div style={{ marginTop: '.75rem' }}>
+                                                <video
+                                                    ref={faceVideoRef}
+                                                    autoPlay
+                                                    muted
+                                                    playsInline
+                                                    style={{
+                                                        width: '100%',
+                                                        maxWidth: '360px',
+                                                        borderRadius: '10px',
+                                                        border: '1px solid rgba(0,0,0,.12)',
+                                                    }}
+                                                />
+                                                <div style={{ display: 'flex', gap: '.5rem', marginTop: '.5rem' }}>
+                                                    <button
+                                                        className='signup-btn'
+                                                        type='button'
+                                                        onClick={handleCaptureFace}
+                                                        disabled={faceLoading}
+                                                    >
+                                                        {faceLoading ? 'Scanning...' : 'Capture Face'}
+                                                    </button>
+                                                    <button
+                                                        className='signup-btn signup-btn-secondary'
+                                                        type='button'
+                                                        onClick={closeFaceCamera}
+                                                        disabled={faceLoading}
+                                                    >
+                                                        Cancel
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {faceMessage && (
+                                            <p style={{ marginTop: '.5rem', color: '#1e7a4d', fontSize: '.92rem' }}>
+                                                {faceMessage}
+                                            </p>
+                                        )}
                                     </div>
                                 </div>
                             )}
