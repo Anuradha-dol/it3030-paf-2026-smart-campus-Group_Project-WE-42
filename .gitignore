@@ -21,3 +21,11 @@ uploads/**
 server/uploads/**
 !server/uploads/
 !server/uploads/.gitkeep
+# Broad local/generated files
+**/.idea/
+**/.vscode/
+**/.tools/
+**/node_modules/
+**/uploads/**
+!**/uploads/
+!**/uploads/.gitkeep
