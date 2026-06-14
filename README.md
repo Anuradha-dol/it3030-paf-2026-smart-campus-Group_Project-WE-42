@@ -2,6 +2,12 @@
 
 A group-built smart campus web application for managing campus resources, booking requests, maintenance tickets, users, authentication, and real-time notifications.
 
+## UI Preview
+
+![Uni Sphere Landing Page](./docs/screenshots/landing-page.png)
+
+The complete UI walkthrough is available in the [UI Screenshots PDF](./docs/ui-screenshots.pdf).
+
 ## Project Overview
 
 Uni Sphere, also used in the UI as UniSphere, was developed as a group full-stack web application for the Programming Applications and Frameworks (IT3030) module in Year 3 Semester 1. The project focuses on a university campus service-management workflow where students can discover and book resources, admins can manage facilities and approvals, and technicians can track assigned maintenance work.
@@ -35,12 +41,6 @@ The project documentation PDF includes the system overview, technology stack, te
 The UI screenshots PDF includes the main application screens such as the landing page, signup, forgot password, login, Face ID login, profile, settings, admin dashboard, technician dashboard, notifications, resource pages, booking pages, and ticket pages.
 
 This README still gives a code-level explanation of the project so readers do not need to depend only on the PDFs.
-
-## UI Preview
-
-![Uni Sphere Landing Page](./docs/screenshots/landing-page.png)
-
-The complete UI walkthrough is available in the UI screenshots PDF.
 
 ## Tech Stack
 
@@ -544,11 +544,7 @@ Local URLs:
 
 ## UI Screenshots & Preview
 
-The README shows only one preview image to keep the front page readable.
-
-![Uni Sphere Landing Page](./docs/screenshots/landing-page.png)
-
-The complete UI walkthrough is available in the UI screenshots PDF:
+A landing page preview is shown near the top of this README so visitors can quickly understand the application UI. The complete UI walkthrough is available in the UI screenshots PDF:
 
 - [View UI Screenshots PDF](./docs/ui-screenshots.pdf)
 
